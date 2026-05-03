@@ -3,17 +3,17 @@ import { Link } from "react-router-dom";
 import { fetchQuestions } from "../../lib/questions.js";
 
 const ISLANDS = [
-  { slug: "rekenland", name: "Rekenland", icon: "🔢", color: "#3b82f6" },
-  { slug: "toppieland", name: "Toppieland", icon: "🗺️", color: "#10b981" },
-  { slug: "engeland", name: "Engeland", icon: "🇬🇧", color: "#ef4444" },
-  { slug: "spelling", name: "Spelling", icon: "✏️", color: "#8b5cf6" },
-  { slug: "historica", name: "Historica", icon: "📜", color: "#f59e0b" },
+  { slug: "rekenland",  name: "Rekenland",  icon: "🔢", tint: "#3b82f6" },
+  { slug: "toppieland", name: "Toppieland", icon: "🗺️", tint: "#10b981" },
+  { slug: "engeland",   name: "Engeland",   icon: "🇬🇧", tint: "#ef4444" },
+  { slug: "spelling",   name: "Spelling",   icon: "✏️", tint: "#8b5cf6" },
+  { slug: "historica",  name: "Historica",  icon: "📜", tint: "#f59e0b" },
 ];
 
 const NIVEAUS = [
-  { slug: "groep56", name: "Groep 5 en 6", desc: "Basisschool middenbouw" },
-  { slug: "groep78", name: "Groep 7 en 8", desc: "Basisschool bovenbouw" },
-  { slug: "middelbaar", name: "Middelbaar", desc: "Brugklas en hoger" },
+  { slug: "groep56",    name: "Groep 5 en 6", desc: "Basisschool middenbouw", icon: "🐢" },
+  { slug: "groep78",    name: "Groep 7 en 8", desc: "Basisschool bovenbouw",  icon: "🦜" },
+  { slug: "middelbaar", name: "Middelbaar",   desc: "Brugklas en hoger",       icon: "🦈" },
 ];
 
 const QUESTIONS_PER_ISLAND = 6;
@@ -28,115 +28,307 @@ function shuffle(arr) {
   return copy;
 }
 
-const styles = {
-  page: { maxWidth: 880, margin: "0 auto", padding: "32px 20px" },
-  back: { color: "#3a5a47", textDecoration: "none", fontSize: 14 },
-  h1: { fontSize: 36, margin: "12px 0 4px", color: "#1f3a2a" },
-  sub: { color: "#3a5a47", margin: "0 0 24px" },
-  card: {
-    background: "white",
-    borderRadius: 16,
-    padding: 20,
-    boxShadow: "0 4px 16px rgba(31, 58, 42, 0.08)",
+// ---------- Decorative SVGs ----------
+
+function Sun() {
+  return (
+    <svg
+      viewBox="0 0 120 120"
+      width="100"
+      height="100"
+      style={{
+        position: "absolute",
+        top: 12,
+        right: 12,
+        zIndex: 1,
+        animation: "sun-pulse 4s ease-in-out infinite",
+        pointerEvents: "none",
+      }}
+      aria-hidden="true"
+    >
+      {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
+        <line
+          key={deg}
+          x1="60" y1="20" x2="60" y2="6"
+          stroke="#ffd766"
+          strokeWidth="4"
+          strokeLinecap="round"
+          transform={`rotate(${deg} 60 60)`}
+        />
+      ))}
+      <circle cx="60" cy="60" r="28" fill="#ffd766" />
+      <circle cx="60" cy="60" r="22" fill="#ffe898" />
+    </svg>
+  );
+}
+
+function Waves() {
+  // SVG width = 200% so we can translate -50% for a seamless loop.
+  const wave = (y, fill, opacity) => (
+    <path
+      d={`M0 ${y} Q150 ${y - 14} 300 ${y} T600 ${y} T900 ${y} T1200 ${y} T1500 ${y} T1800 ${y} T2100 ${y} T2400 ${y} V200 H0 Z`}
+      fill={fill}
+      opacity={opacity}
+    />
+  );
+  return (
+    <div
+      style={{
+        position: "absolute",
+        bottom: 0, left: 0, right: 0,
+        height: 110,
+        overflow: "hidden",
+        pointerEvents: "none",
+        zIndex: 1,
+      }}
+      aria-hidden="true"
+    >
+      <svg
+        viewBox="0 0 2400 200"
+        preserveAspectRatio="none"
+        style={{ width: "200%", height: "100%", animation: "wave-slide 18s linear infinite" }}
+      >
+        {wave(60, "#ffffff", 0.20)}
+      </svg>
+      <svg
+        viewBox="0 0 2400 200"
+        preserveAspectRatio="none"
+        style={{ width: "200%", height: "100%", position: "absolute", inset: 0, animation: "wave-slide 26s linear infinite reverse" }}
+      >
+        {wave(80, "#ffffff", 0.30)}
+      </svg>
+    </div>
+  );
+}
+
+function Island({ size = 130, conquered, locked, icon }) {
+  return (
+    <svg
+      viewBox="0 0 130 140"
+      width={size}
+      height={size * 140 / 130}
+      style={{ display: "block", margin: "0 auto", filter: locked ? "grayscale(0.8) brightness(0.85)" : "none" }}
+      aria-hidden="true"
+    >
+      {/* water reflection */}
+      <ellipse cx="65" cy="125" rx="48" ry="6" fill="rgba(0, 0, 0, 0.18)" />
+      {/* sand body */}
+      <ellipse cx="65" cy="108" rx="50" ry="20" fill="#e8c878" />
+      <path d="M18 108 Q22 96 38 92 Q55 84 65 84 Q78 84 92 92 Q108 96 112 108 Z" fill="#f5d99a" />
+      {/* tiny waves on sand */}
+      <path d="M22 116 Q30 113 38 116 T54 116" stroke="#f0e2bc" strokeWidth="1.5" fill="none" opacity="0.7" />
+      <path d="M76 118 Q86 115 96 118 T112 118" stroke="#f0e2bc" strokeWidth="1.5" fill="none" opacity="0.7" />
+      {/* palm trunk */}
+      <path d="M64 84 Q60 70 62 50 Q63 40 66 28" stroke="#7a4a26" strokeWidth="5" fill="none" strokeLinecap="round" />
+      <path d="M64 84 Q60 70 62 50 Q63 40 66 28" stroke="#9a6a3a" strokeWidth="2" fill="none" strokeLinecap="round" />
+      {/* palm leaves */}
+      <ellipse cx="50" cy="26" rx="14" ry="5" fill="#4a8c2a" transform="rotate(-22 50 26)" />
+      <ellipse cx="82" cy="26" rx="14" ry="5" fill="#4a8c2a" transform="rotate(22 82 26)" />
+      <ellipse cx="46" cy="36" rx="14" ry="5" fill="#5aa838" transform="rotate(-46 46 36)" />
+      <ellipse cx="86" cy="36" rx="14" ry="5" fill="#5aa838" transform="rotate(46 86 36)" />
+      <ellipse cx="66" cy="18" rx="13" ry="4" fill="#6cc44a" />
+      {/* coconuts */}
+      <circle cx="62" cy="32" r="2.4" fill="#5a3a22" />
+      <circle cx="69" cy="33" r="2.4" fill="#5a3a22" />
+      {/* subject icon as a small "sign" planted in sand */}
+      {icon && (
+        <g>
+          <rect x="48" y="92" width="34" height="22" rx="4" fill="#fdfaf2" stroke="#7a4a26" strokeWidth="1.6" />
+          <text x="65" y="109" textAnchor="middle" fontSize="16">{icon}</text>
+        </g>
+      )}
+      {/* victory flag */}
+      {conquered && (
+        <g>
+          <line x1="66" y1="28" x2="66" y2="2" stroke="#7a4a26" strokeWidth="1.8" />
+          <path d="M66 4 L84 9 L66 14 Z" fill="#e84a3a" />
+        </g>
+      )}
+    </svg>
+  );
+}
+
+// ---------- Styles ----------
+
+const oceanGradient = "linear-gradient(180deg, #9bd1e8 0%, #b8def0 22%, #4ea0c8 60%, #2d7aa8 100%)";
+
+const s = {
+  page: {
+    minHeight: "100vh",
+    position: "relative",
+    overflow: "hidden",
+    background: oceanGradient,
+    paddingBottom: 130,
   },
-  niveauGrid: { display: "grid", gridTemplateColumns: "1fr", gap: 12, marginTop: 16 },
+  content: { position: "relative", zIndex: 2, maxWidth: 880, margin: "0 auto", padding: "24px 18px 0" },
+  back: {
+    color: "#1f3a4a", textDecoration: "none", fontSize: 14,
+    background: "rgba(255, 255, 255, 0.7)",
+    padding: "6px 12px", borderRadius: 999, fontWeight: 600,
+    display: "inline-block", marginBottom: 12,
+  },
+  title: {
+    fontSize: 38,
+    margin: "8px 0 4px",
+    color: "#fdfaf2",
+    fontFamily: "Georgia, serif",
+    fontWeight: 700,
+    textShadow: "0 2px 8px rgba(0, 60, 100, 0.4)",
+    textAlign: "center",
+  },
+  sub: {
+    color: "#fdfaf2",
+    margin: "0 0 22px",
+    textAlign: "center",
+    textShadow: "0 1px 4px rgba(0, 60, 100, 0.3)",
+    fontSize: 16,
+  },
+  panel: {
+    background: "#fdfaf2",
+    border: "3px solid #c8884a",
+    borderRadius: 20,
+    padding: 22,
+    boxShadow: "0 10px 30px rgba(0, 60, 100, 0.25), inset 0 0 0 1px rgba(255,255,255,0.6)",
+    animation: "pop-in 0.35s ease-out",
+  },
+  panelHeader: {
+    fontSize: 20, fontWeight: 700, color: "#5a3a26",
+    fontFamily: "Georgia, serif",
+    margin: "0 0 14px",
+  },
+  niveauList: { display: "grid", gap: 12, marginTop: 6 },
   niveauBtn: {
-    background: "white",
-    border: "2px solid #d6ecdf",
+    background: "#fff5dc",
+    border: "2.5px solid #c8884a",
     borderRadius: 14,
-    padding: 18,
+    padding: "14px 16px",
     textAlign: "left",
     cursor: "pointer",
-    fontSize: 16,
-    transition: "transform 0.05s, border-color 0.1s",
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    transition: "transform 0.08s",
   },
-  niveauName: { fontWeight: 700, fontSize: 18, color: "#1f3a2a" },
-  niveauDesc: { color: "#3a5a47", fontSize: 14, marginTop: 4 },
+  niveauIcon: { fontSize: 36, lineHeight: 1 },
+  niveauName: { fontWeight: 700, fontSize: 17, color: "#5a3a26", fontFamily: "Georgia, serif" },
+  niveauDesc: { color: "#7a5a3a", fontSize: 14, marginTop: 2 },
   islandGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-    gap: 16,
-    marginTop: 24,
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: 18,
+    marginTop: 8,
+    marginBottom: 18,
   },
-  island: (color, conquered) => ({
-    background: conquered ? "#fef3c7" : "white",
-    border: `3px solid ${conquered ? "#f59e0b" : color}`,
-    borderRadius: 16,
-    padding: 18,
+  islandBtn: (delay) => ({
+    background: "transparent",
+    border: "none",
+    padding: 6,
     cursor: "pointer",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: 700,
-    color: "#1f3a2a",
-    transition: "transform 0.05s",
-    position: "relative",
+    display: "block",
+    width: "100%",
+    animation: `bob 4s ease-in-out ${delay}s infinite`,
   }),
-  icon: { fontSize: 44, display: "block", marginBottom: 6 },
-  conqueredTag: {
-    position: "absolute",
-    top: 6,
-    right: 8,
-    fontSize: 11,
-    background: "#f59e0b",
-    color: "white",
-    padding: "2px 8px",
+  islandLabel: (tint, conquered) => ({
+    marginTop: 4,
+    background: conquered ? "#fde6a8" : "#fdfaf2",
+    border: `2.5px solid ${conquered ? "#d49a3a" : tint}`,
     borderRadius: 999,
+    padding: "6px 12px",
+    fontSize: 15,
     fontWeight: 700,
-  },
-  progress: { color: "#3a5a47", fontSize: 14, margin: "0 0 16px" },
+    color: conquered ? "#7a5022" : "#1f3a4a",
+    fontFamily: "Georgia, serif",
+    textAlign: "center",
+    boxShadow: "0 3px 8px rgba(0, 60, 100, 0.18)",
+  }),
   question: {
-    fontSize: 22,
-    margin: "0 0 20px",
-    color: "#1f3a2a",
-    lineHeight: 1.4,
+    fontSize: 22, color: "#1f3a4a", margin: "0 0 18px",
+    lineHeight: 1.4, fontFamily: "Georgia, serif",
   },
-  options: { display: "grid", gap: 10 },
+  optionList: { display: "grid", gap: 10 },
   option: (state) => ({
     background:
-      state === "correct" ? "#dcfce7" :
-      state === "wrong" ? "#fee2e2" :
-      state === "reveal" ? "#dcfce7" :
-      "white",
-    border: `2px solid ${
-      state === "correct" ? "#16a34a" :
-      state === "wrong" ? "#dc2626" :
-      state === "reveal" ? "#16a34a" :
-      "#d6ecdf"
+      state === "correct" ? "#cdebc2" :
+      state === "wrong"   ? "#f7c9c4" :
+      state === "reveal"  ? "#cdebc2" :
+      "#fff5dc",
+    border: `2.5px solid ${
+      state === "correct" ? "#3aa050" :
+      state === "wrong"   ? "#c84a3a" :
+      state === "reveal"  ? "#3aa050" :
+      "#c8884a"
     }`,
-    borderRadius: 12,
-    padding: "14px 16px",
+    borderRadius: 14,
+    padding: "13px 16px",
     fontSize: 16,
     textAlign: "left",
+    color: "#3a2618",
+    fontWeight: 600,
     cursor: state ? "default" : "pointer",
-    color: "#1f3a2a",
-    fontWeight: 500,
+    transition: "transform 0.08s",
   }),
   primary: {
-    background: "#16a34a",
+    background: "#e8884a",
     color: "white",
-    border: "none",
-    borderRadius: 12,
+    border: "2px solid #b86a30",
+    borderRadius: 14,
     padding: "12px 22px",
     fontSize: 16,
-    fontWeight: 700,
+    fontWeight: 800,
     cursor: "pointer",
     marginTop: 18,
+    boxShadow: "0 4px 0 #b86a30",
+    fontFamily: "Georgia, serif",
   },
   secondary: {
-    background: "white",
-    color: "#1f3a2a",
-    border: "2px solid #d6ecdf",
-    borderRadius: 12,
+    background: "#fff5dc",
+    color: "#5a3a26",
+    border: "2px solid #c8884a",
+    borderRadius: 14,
     padding: "10px 18px",
     fontSize: 14,
-    fontWeight: 600,
+    fontWeight: 700,
     cursor: "pointer",
+    fontFamily: "Georgia, serif",
   },
-  row: { display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" },
-  resultTitle: { fontSize: 28, margin: "0 0 8px", color: "#1f3a2a" },
-  hint: { color: "#3a5a47", fontSize: 13, marginTop: 12 },
-  loading: { textAlign: "center", padding: "40px 20px", color: "#3a5a47" },
+  row: { display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" },
+  hint: { color: "#7a5a3a", fontSize: 13, marginTop: 12, fontStyle: "italic" },
+  loadingPanel: {
+    textAlign: "center",
+    padding: "32px 20px",
+    color: "#5a3a26",
+    fontSize: 16,
+    fontFamily: "Georgia, serif",
+  },
+  bigEmoji: { fontSize: 44, display: "block", marginBottom: 10, animation: "bob 2s ease-in-out infinite" },
+  victoryTitle: {
+    fontSize: 32, fontFamily: "Georgia, serif", color: "#5a3a26",
+    margin: "0 0 8px", textAlign: "center",
+  },
+  scoreLine: { color: "#5a3a26", textAlign: "center", margin: "0 0 16px", fontSize: 16 },
+  progressBadge: {
+    display: "inline-block",
+    background: "rgba(255, 255, 255, 0.85)",
+    color: "#1f3a4a",
+    fontWeight: 700,
+    fontSize: 13,
+    padding: "4px 12px",
+    borderRadius: 999,
+    marginBottom: 12,
+  },
+  footer: {
+    position: "relative",
+    zIndex: 2,
+    textAlign: "center",
+    color: "#fdfaf2",
+    textShadow: "0 1px 4px rgba(0, 60, 100, 0.4)",
+    fontSize: 13,
+    padding: "16px 12px 8px",
+    fontStyle: "italic",
+  },
 };
+
+// ---------- Component ----------
 
 export default function EilandenGame() {
   const [phase, setPhase] = useState("niveau"); // niveau | map | loading | play | result | victory
@@ -154,12 +346,6 @@ export default function EilandenGame() {
     () => (currentQuestion ? shuffle(currentQuestion.options) : []),
     [currentQuestion]
   );
-
-  useEffect(() => {
-    if (conquered.size === ISLANDS.length && phase !== "victory") {
-      setPhase("victory");
-    }
-  }, [conquered, phase]);
 
   function pickNiveau(slug) {
     setNiveau(slug);
@@ -201,14 +387,19 @@ export default function EilandenGame() {
   }
 
   function finishIsland(won) {
+    let nextConquered = conquered;
     if (won) {
-      const next = new Set(conquered);
-      next.add(activeIsland);
-      setConquered(next);
+      nextConquered = new Set(conquered);
+      nextConquered.add(activeIsland);
+      setConquered(nextConquered);
     }
     setActiveIsland(null);
     setQuestions([]);
-    setPhase(conquered.size + (won ? 1 : 0) === ISLANDS.length ? "victory" : "map");
+    if (nextConquered.size === ISLANDS.length) {
+      setPhase("victory");
+    } else {
+      setPhase("map");
+    }
   }
 
   function resetAll() {
@@ -222,69 +413,85 @@ export default function EilandenGame() {
     setPhase("niveau");
   }
 
-  // ---------- Render ----------
+  // ---------- Render frame ----------
+  const Frame = ({ children, hideSun }) => (
+    <div style={s.page}>
+      {!hideSun && <Sun />}
+      <Waves />
+      <div style={s.content}>{children}</div>
+      <div style={s.footer}>🌿 Willow Games • © 2026</div>
+    </div>
+  );
+
+  // ---------- Phases ----------
   if (phase === "niveau") {
     return (
-      <div style={styles.page}>
-        <Link to="/" style={styles.back}>← Terug naar Land van Leren</Link>
-        <h1 style={styles.h1}>🏝️ Eilandenavontuur</h1>
-        <p style={styles.sub}>Verover alle vijf de eilanden door vragen goed te beantwoorden.</p>
-        <div style={styles.card}>
-          <strong style={{ fontSize: 18, color: "#1f3a2a" }}>Kies je niveau</strong>
-          <div style={styles.niveauGrid}>
+      <Frame>
+        <Link to="/" style={s.back}>← Land van Leren</Link>
+        <h1 style={s.title}>🏝️ Eilandenavontuur</h1>
+        <p style={s.sub}>Verover alle vijf de eilanden door vragen goed te beantwoorden.</p>
+        <div style={s.panel}>
+          <div style={s.panelHeader}>Kies je niveau</div>
+          <div style={s.niveauList}>
             {NIVEAUS.map((n) => (
-              <button key={n.slug} style={styles.niveauBtn} onClick={() => pickNiveau(n.slug)}>
-                <div style={styles.niveauName}>{n.name}</div>
-                <div style={styles.niveauDesc}>{n.desc}</div>
+              <button key={n.slug} style={s.niveauBtn} onClick={() => pickNiveau(n.slug)}>
+                <span style={s.niveauIcon}>{n.icon}</span>
+                <span>
+                  <div style={s.niveauName}>{n.name}</div>
+                  <div style={s.niveauDesc}>{n.desc}</div>
+                </span>
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </Frame>
     );
   }
 
   if (phase === "map") {
     const remaining = ISLANDS.length - conquered.size;
     return (
-      <div style={styles.page}>
-        <Link to="/" style={styles.back}>← Terug naar Land van Leren</Link>
-        <h1 style={styles.h1}>De vijf eilanden</h1>
-        <p style={styles.sub}>
+      <Frame>
+        <Link to="/" style={s.back}>← Land van Leren</Link>
+        <h1 style={s.title}>De vijf eilanden</h1>
+        <p style={s.sub}>
           {remaining === ISLANDS.length
-            ? "Klik op een eiland om te beginnen."
+            ? "Klik op een eiland om je avontuur te beginnen."
             : `Nog ${remaining} eiland${remaining === 1 ? "" : "en"} te veroveren.`}
         </p>
-        <div style={styles.islandGrid}>
-          {ISLANDS.map((island) => {
+        <div style={s.islandGrid}>
+          {ISLANDS.map((island, i) => {
             const isConquered = conquered.has(island.slug);
             return (
               <button
                 key={island.slug}
-                style={styles.island(island.color, isConquered)}
+                style={s.islandBtn((i % 5) * 0.4)}
                 onClick={() => startIsland(island.slug)}
+                aria-label={`${island.name}${isConquered ? " (veroverd)" : ""}`}
               >
-                {isConquered && <span style={styles.conqueredTag}>veroverd</span>}
-                <span style={styles.icon}>{island.icon}</span>
-                {island.name}
+                <Island conquered={isConquered} icon={island.icon} />
+                <div style={s.islandLabel(island.tint, isConquered)}>{island.name}</div>
               </button>
             );
           })}
         </div>
-        <div style={styles.row}>
-          <button style={styles.secondary} onClick={resetAll}>Ander niveau</button>
+        <div style={s.row}>
+          <button style={s.secondary} onClick={resetAll}>Ander niveau kiezen</button>
         </div>
-      </div>
+      </Frame>
     );
   }
 
   if (phase === "loading") {
     return (
-      <div style={styles.page}>
-        <div style={styles.card}>
-          <div style={styles.loading}>Vragen laden…</div>
+      <Frame>
+        <div style={s.panel}>
+          <div style={s.loadingPanel}>
+            <span style={s.bigEmoji}>⛵</span>
+            Vragen laden, op weg naar het eiland…
+          </div>
         </div>
-      </div>
+      </Frame>
     );
   }
 
@@ -292,13 +499,13 @@ export default function EilandenGame() {
     const island = ISLANDS.find((i) => i.slug === activeIsland);
     const correctAnswer = currentQuestion.a;
     return (
-      <div style={styles.page}>
-        <p style={styles.progress}>
+      <Frame>
+        <span style={s.progressBadge}>
           {island.icon} {island.name} • Vraag {qIndex + 1} van {questions.length}
-        </p>
-        <div style={styles.card}>
-          <p style={styles.question}>{currentQuestion.q}</p>
-          <div style={styles.options}>
+        </span>
+        <div style={s.panel}>
+          <p style={s.question}>{currentQuestion.q}</p>
+          <div style={s.optionList}>
             {shuffledOptions.map((opt, idx) => {
               let state = null;
               if (pickedIndex !== null) {
@@ -308,7 +515,7 @@ export default function EilandenGame() {
               return (
                 <button
                   key={idx}
-                  style={styles.option(state)}
+                  style={s.option(state)}
                   onClick={() => pickAnswer(idx)}
                   disabled={pickedIndex !== null}
                 >
@@ -318,15 +525,15 @@ export default function EilandenGame() {
             })}
           </div>
           {pickedIndex !== null && (
-            <button style={styles.primary} onClick={nextQuestion}>
-              {qIndex + 1 >= questions.length ? "Resultaat" : "Volgende vraag"}
+            <button style={s.primary} onClick={nextQuestion}>
+              {qIndex + 1 >= questions.length ? "Resultaat bekijken" : "Volgende vraag →"}
             </button>
           )}
           {source === "fallback" && (
-            <p style={styles.hint}>Offline-vragen (geen verbinding met vragen-server).</p>
+            <p style={s.hint}>Offline-vragen gebruikt (geen verbinding met vragen-server).</p>
           )}
         </div>
-      </div>
+      </Frame>
     );
   }
 
@@ -334,46 +541,55 @@ export default function EilandenGame() {
     const island = ISLANDS.find((i) => i.slug === activeIsland);
     const won = correctCount >= WIN_THRESHOLD;
     return (
-      <div style={styles.page}>
-        <div style={styles.card}>
-          <h2 style={styles.resultTitle}>
-            {won ? `🎉 ${island.name} veroverd!` : `💪 Bijna! Nog een keer?`}
+      <Frame>
+        <div style={s.panel}>
+          <div style={{ textAlign: "center" }}>
+            <span style={s.bigEmoji}>{won ? "🚩" : "💪"}</span>
+          </div>
+          <h2 style={s.victoryTitle}>
+            {won ? `${island.name} veroverd!` : "Bijna gelukt!"}
           </h2>
-          <p style={styles.sub}>
+          <p style={s.scoreLine}>
             Je had {correctCount} van de {questions.length} vragen goed.
-            {won ? "" : ` Je hebt er minimaal ${WIN_THRESHOLD} nodig om het eiland te veroveren.`}
+            {won ? "" : ` Je hebt er minimaal ${WIN_THRESHOLD} nodig.`}
           </p>
-          <div style={styles.row}>
-            <button style={styles.primary} onClick={() => finishIsland(won)}>
+          <div style={{ ...s.row, justifyContent: "center" }}>
+            <button style={s.primary} onClick={() => finishIsland(won)}>
               {won ? "Door naar de kaart" : "Terug naar de kaart"}
             </button>
             {!won && (
-              <button style={styles.secondary} onClick={() => startIsland(activeIsland)}>
-                Probeer dit eiland opnieuw
+              <button style={s.secondary} onClick={() => startIsland(activeIsland)}>
+                Probeer opnieuw
               </button>
             )}
           </div>
         </div>
-      </div>
+      </Frame>
     );
   }
 
   if (phase === "victory") {
     return (
-      <div style={styles.page}>
-        <div style={styles.card}>
-          <h2 style={styles.resultTitle}>🏆 Alle eilanden veroverd!</h2>
-          <p style={styles.sub}>
-            Je hebt het hele Eilandenavontuur uitgespeeld. Bedankt voor het spelen!
+      <Frame>
+        <div style={s.panel}>
+          <div style={{ textAlign: "center" }}>
+            <span style={s.bigEmoji}>🏆</span>
+          </div>
+          <h2 style={s.victoryTitle}>Alle eilanden veroverd!</h2>
+          <p style={s.scoreLine}>
+            Je hebt het hele Eilandenavontuur uitgespeeld. Wat een avonturier!
           </p>
-          <div style={styles.row}>
-            <button style={styles.primary} onClick={resetAll}>Opnieuw spelen</button>
-            <Link to="/" style={{ ...styles.secondary, textDecoration: "none", display: "inline-block" }}>
-              Terug naar Land van Leren
+          <div style={{ ...s.row, justifyContent: "center" }}>
+            <button style={s.primary} onClick={resetAll}>Opnieuw spelen</button>
+            <Link
+              to="/"
+              style={{ ...s.secondary, textDecoration: "none", display: "inline-block" }}
+            >
+              Land van Leren
             </Link>
           </div>
         </div>
-      </div>
+      </Frame>
     );
   }
 
