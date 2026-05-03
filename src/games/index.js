@@ -10,4 +10,13 @@ export const games = [
     status: "live",
     component: EilandenGame,
   },
+  {
+    slug: "beren",
+    title: "Beren Leren",
+    blurb: "Een leerzaam berenavontuur door het bos. Binnenkort speelbaar.",
+    levels: ["groep56", "groep78", "middelbaar"],
+    icon: "🐻",
+    status: "soon",
+    component: null,
+  },
 ];
