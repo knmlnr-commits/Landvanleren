@@ -2,8 +2,19 @@
 <html lang="nl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#5a8a4a" />
+    <meta name="description" content="Land van Leren — educatieve games van Willow Games. Verover de eilanden door vragen te beantwoorden." />
+
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Land van Leren" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
     <title>Land van Leren</title>
     <style>
       html, body { margin: 0; padding: 0; }
@@ -13,6 +24,7 @@
         background: #eaf3df;
       }
       button { font-family: inherit; }
+      input { font-family: inherit; }
       @keyframes sway {
         0%, 100% { transform: rotate(-1.4deg); }
         50%      { transform: rotate(1.4deg); }
@@ -29,14 +41,19 @@
         0%, 100% { transform: scale(1); }
         50%      { transform: scale(1.06); }
       }
-      @keyframes float-leaf {
-        0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.0; }
-        20%  { opacity: 0.6; }
-        100% { transform: translate(20px, 80px) rotate(80deg); opacity: 0; }
-      }
       @keyframes pop-in {
         from { transform: scale(0.92); opacity: 0; }
         to   { transform: scale(1);    opacity: 1; }
+      }
+      @keyframes confetti-fall {
+        0%   { transform: translateY(-30px) rotate(0deg);   opacity: 0; }
+        12%  { opacity: 1; }
+        100% { transform: translateY(420px) rotate(360deg); opacity: 0; }
+      }
+      @keyframes flag-raise {
+        0%   { transform: scaleY(0) translateY(60px); opacity: 0; transform-origin: bottom; }
+        70%  { transform: scaleY(1.1) translateY(0); opacity: 1; transform-origin: bottom; }
+        100% { transform: scaleY(1) translateY(0); opacity: 1; transform-origin: bottom; }
       }
     </style>
   </head>

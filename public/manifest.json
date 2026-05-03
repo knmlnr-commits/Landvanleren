@@ -1,0 +1,28 @@
+{
+  "name": "Land van Leren",
+  "short_name": "Land van Leren",
+  "description": "Educatieve games van Willow Games. Verover de eilanden door vragen te beantwoorden.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "nl",
+  "dir": "ltr",
+  "categories": ["education", "games", "kids"],
+  "theme_color": "#5a8a4a",
+  "background_color": "#eaf3df",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
