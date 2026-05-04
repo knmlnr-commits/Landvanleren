@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, useParams, Navigate } from "react-router-dom";
 import Home from "./pages/Home.jsx";
+import VoorLeraren from "./pages/VoorLeraren.jsx";
 import { games } from "./games/index.js";
 
 function GameRoute() {
@@ -16,6 +17,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/voor-leraren" element={<VoorLeraren />} />
       <Route path="/spel/:slug" element={<GameRoute />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
