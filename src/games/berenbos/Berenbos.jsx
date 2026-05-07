@@ -220,34 +220,44 @@ const styles = {
   },
   wonRow: { display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" },
   victoryStage: {
-    position: "relative", height: 130, marginBottom: 10,
-    overflow: "visible",
+    position: "relative",
+    height: 150,
+    marginBottom: 10,
+    overflow: "hidden",
   },
-  bigBear: {
-    position: "absolute", left: "50%", bottom: 0,
-    transform: "translateX(-50%)", zIndex: 3,
+  bigBearWrap: {
+    position: "absolute",
+    left: 0, right: 0, bottom: 0,
+    display: "flex", justifyContent: "center",
+    zIndex: 3,
   },
   wolfFlee: {
-    position: "absolute", left: "55%", top: 14,
-    fontSize: 38, animation: "wolf-flee 2.4s ease-out forwards",
-    pointerEvents: "none", zIndex: 4, whiteSpace: "nowrap",
+    position: "absolute",
+    left: "60%", bottom: 18,
+    fontSize: 36, lineHeight: 1,
+    animation: "wolf-flee 2.6s ease-out forwards",
+    pointerEvents: "none",
+    zIndex: 4,
+    whiteSpace: "nowrap",
+    willChange: "transform, opacity",
   },
   wolfAu: {
-    position: "absolute", left: "60%", top: 4,
-    fontSize: 18, fontWeight: 800, color: "#c84a3a",
+    position: "absolute",
+    left: "62%", top: 16,
+    fontSize: 16, fontWeight: 800, color: "#c84a3a",
     fontFamily: "Georgia, serif", fontStyle: "italic",
     background: "rgba(255, 255, 255, 0.95)",
     padding: "2px 10px", borderRadius: 999,
     border: "2px solid #c84a3a",
-    animation: "pop-bubble 1.4s ease-out forwards",
     pointerEvents: "none", zIndex: 5,
     boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
     whiteSpace: "nowrap",
   },
   victoryStar: {
-    position: "absolute", fontSize: 18,
-    animation: "sparkle 1.4s ease-out infinite",
-    pointerEvents: "none", zIndex: 2,
+    position: "absolute",
+    fontSize: 18,
+    pointerEvents: "none",
+    zIndex: 2,
   },
   funnyLine: {
     color: "#5a3a26", fontStyle: "italic",
@@ -288,20 +298,20 @@ const LEAVES = [
 ];
 
 function WonConfetti() {
-  const pieces = ["🎉", "✨", "🌟", "🎊", "💫", "🏆", "🍂"];
+  const pieces = ["🎉", "✨", "🌟", "🎊", "💫", "🏆"];
   return (
     <div style={{
       position: "absolute", inset: 0, pointerEvents: "none",
       overflow: "hidden", borderRadius: "inherit", zIndex: 0,
-    }}>
-      {Array.from({ length: 18 }).map((_, i) => {
-        const left = (i * 5.7) % 100;
-        const delay = (i * 0.12) % 1.8;
+    }} aria-hidden="true">
+      {Array.from({ length: 10 }).map((_, i) => {
+        const left = ((i * 11) + 5) % 100;
+        const delay = (i * 0.18) % 1.6;
         return (
           <span key={i} style={{
             position: "absolute", left: `${left}%`, top: 0,
             fontSize: 22,
-            animation: `confetti-fall 2.8s ease-in ${delay}s forwards`,
+            animation: `confetti-fall 2.6s ease-in ${delay}s forwards`,
           }}>{pieces[i % pieces.length]}</span>
         );
       })}
@@ -567,17 +577,16 @@ export default function Berenbos() {
             <WonConfetti />
             <div style={{ position: "relative", zIndex: 1 }}>
               <div style={styles.victoryStage}>
-                <span style={{ ...styles.victoryStar, left: "30%", top: 6,  fontSize: 18, animationDelay: "0.0s" }}>⭐</span>
-                <span style={{ ...styles.victoryStar, left: "62%", top: 30, fontSize: 16, animationDelay: "0.5s" }}>✨</span>
-                <span style={{ ...styles.victoryStar, left: "44%", top: 64, fontSize: 18, animationDelay: "1.0s" }}>💫</span>
-                <span style={{ ...styles.victoryStar, left: "26%", top: 50, fontSize: 14, animationDelay: "0.3s" }}>⭐</span>
-                <span style={{ ...styles.victoryStar, left: "70%", top: 60, fontSize: 14, animationDelay: "0.7s" }}>✨</span>
+                <span style={{ ...styles.victoryStar, left: "20%", top: 14, fontSize: 18, animation: "sparkle 1.4s ease-out 0.0s infinite" }}>⭐</span>
+                <span style={{ ...styles.victoryStar, left: "78%", top: 36, fontSize: 16, animation: "sparkle 1.4s ease-out 0.5s infinite" }}>✨</span>
+                <span style={{ ...styles.victoryStar, left: "44%", top: 72, fontSize: 18, animation: "sparkle 1.4s ease-out 1.0s infinite" }}>💫</span>
+                <span style={{ ...styles.victoryStar, left: "14%", top: 56, fontSize: 14, animation: "sparkle 1.4s ease-out 0.3s infinite" }}>⭐</span>
 
                 <span style={styles.wolfAu}>Au!</span>
                 <span style={styles.wolfFlee} aria-hidden="true">{niveau.bossEmoji}💨</span>
 
-                <div style={styles.bigBear}>
-                  <BearSvg size={96} anim="celebrate" />
+                <div style={styles.bigBearWrap}>
+                  <BearSvg size={104} anim="celebrate" />
                 </div>
               </div>
 

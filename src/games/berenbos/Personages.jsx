@@ -9,9 +9,9 @@ export function BearSvg({ size = 64, anim }) {
     anim === "celebrate" ? "bear-celebrate 1.2s ease-in-out infinite" :
     "bob 2.4s ease-in-out infinite";
 
-  // Walking cycle staat alleen aan in idle/celebrate; tijdens hop/stumble pauze
-  // zodat de pootjes geen rare botsing maken met de hop-animatie.
-  const walkRunning = anim !== "hop" && anim !== "stumble";
+  // Walking cycle staat alleen aan in de idle staat. Tijdens hop, stumble of
+  // celebrate pauzeren de pootjes zodat de wrapper-animatie netjes blijft.
+  const walkRunning = anim === undefined || anim === null || anim === "walk";
   const legA = walkRunning ? "leg-walk-a 0.55s ease-in-out infinite" : "none";
   const legB = walkRunning ? "leg-walk-b 0.55s ease-in-out infinite" : "none";
 
