@@ -62,6 +62,39 @@
         60%      { transform: translateX(-6px) rotate(-2deg); }
         80%      { transform: translateX(6px) rotate(2deg); }
       }
+      @keyframes leaf-fall {
+        0%   { transform: translate3d(0, -60px, 0) rotate(0deg);    opacity: 0; }
+        10%  { opacity: 0.9; }
+        90%  { opacity: 0.85; }
+        100% { transform: translate3d(40px, 110vh, 0) rotate(540deg); opacity: 0; }
+      }
+      @keyframes pop-bubble {
+        0%   { transform: translate(-50%, 0) scale(0.4);   opacity: 0; }
+        20%  { transform: translate(-50%, -8px) scale(1.18); opacity: 1; }
+        60%  { transform: translate(-50%, -32px) scale(1);   opacity: 1; }
+        100% { transform: translate(-50%, -56px) scale(0.95); opacity: 0; }
+      }
+      @keyframes bear-hop {
+        0%   { transform: translateY(0)    rotate(0deg); }
+        35%  { transform: translateY(-22px) rotate(-6deg); }
+        70%  { transform: translateY(-4px)  rotate(2deg); }
+        100% { transform: translateY(0)    rotate(0deg); }
+      }
+      @keyframes bear-stumble {
+        0%   { transform: translateY(0)   rotate(0deg); }
+        25%  { transform: translateY(2px)  rotate(-14deg); }
+        60%  { transform: translateY(4px)  rotate(8deg); }
+        100% { transform: translateY(0)   rotate(0deg); }
+      }
+      @keyframes step-glow {
+        0%   { box-shadow: 0 0 0 0   rgba(90, 168, 80, 0.85); }
+        100% { box-shadow: 0 0 0 16px rgba(90, 168, 80, 0); }
+      }
+      @keyframes sparkle {
+        0%   { transform: scale(0)   rotate(0deg);   opacity: 0; }
+        40%  { transform: scale(1.2) rotate(140deg); opacity: 1; }
+        100% { transform: scale(0.5) rotate(360deg); opacity: 0; }
+      }
     </style>
   </head>
   <body>

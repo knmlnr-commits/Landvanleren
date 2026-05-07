@@ -237,6 +237,43 @@ const styles = {
   },
 };
 
+const LEAVES = [
+  { left: "8%",  delay: 0,   duration: 9,  leaf: "🍂", size: 22 },
+  { left: "22%", delay: 2.5, duration: 7,  leaf: "🍃", size: 20 },
+  { left: "38%", delay: 5,   duration: 8,  leaf: "🍂", size: 24 },
+  { left: "55%", delay: 1.5, duration: 10, leaf: "🍃", size: 20 },
+  { left: "72%", delay: 3.8, duration: 8,  leaf: "🍂", size: 22 },
+  { left: "88%", delay: 6,   duration: 9,  leaf: "🍃", size: 20 },
+  { left: "30%", delay: 7.5, duration: 11, leaf: "🍂", size: 18 },
+  { left: "65%", delay: 4.2, duration: 9.5, leaf: "🍃", size: 22 },
+];
+
+function FallingLeaves() {
+  return (
+    <>
+      {LEAVES.map((l, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: l.left,
+            top: 0,
+            fontSize: l.size,
+            animation: `leaf-fall ${l.duration}s linear ${l.delay}s infinite`,
+            pointerEvents: "none",
+            zIndex: 0,
+            opacity: 0.85,
+            willChange: "transform",
+          }}
+        >
+          {l.leaf}
+        </span>
+      ))}
+    </>
+  );
+}
+
 function ForestBackdrop() {
   return (
     <>
@@ -248,6 +285,7 @@ function ForestBackdrop() {
       <span style={styles.butterfly2} aria-hidden="true">🦋</span>
       <span style={styles.mushroom1} aria-hidden="true">🍄</span>
       <span style={styles.mushroom2} aria-hidden="true">🍄</span>
+      <FallingLeaves />
     </>
   );
 }
