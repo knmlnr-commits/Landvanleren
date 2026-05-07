@@ -1,4 +1,5 @@
 import EilandenGame from "./eilanden/EilandenGame.jsx";
+import Berenbos from "./berenbos/Berenbos.jsx";
 
 export const games = [
   {
@@ -11,12 +12,12 @@ export const games = [
     component: EilandenGame,
   },
   {
-    slug: "beren",
-    title: "Beren Leren",
-    blurb: "Een leerzaam berenavontuur door het bos. Binnenkort speelbaar.",
-    levels: ["groep56", "groep78", "middelbaar"],
+    slug: "berenbos",
+    title: "Berenbos",
+    blurb: "Wandel met het beertje door het bos. Goed antwoord, een stap vooruit; aan het einde wacht de wolf.",
+    levels: ["groep78"],
     icon: "🐻",
-    status: "soon",
-    component: null,
+    status: "live",
+    component: Berenbos,
   },
 ];

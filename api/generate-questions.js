@@ -1,28 +1,37 @@
 // Vercel serverless function: proxy naar Anthropic API voor het genereren van quiz-vragen.
-// Contract en gedrag staan beschreven in CLAUDE.md sectie 3.
+// Ondersteunt twee games via de gameType parameter.
 //
-// Body: { niveau, eiland, aantal }
+// Body: { gameType, niveau, ..., aantal }
+//   gameType ∈ "eilanden" | "berenbos" (default: "eilanden" voor backward compat)
+//
+// Eilanden: { gameType: "eilanden", niveau, eiland, aantal }
 //   niveau ∈ "groep56" | "groep78" | "middelbaar"
 //   eiland ∈ "rekenland" | "toppieland" | "engeland" | "spelling" | "historica"
-//   aantal: 1..10 (default 6)
-// Response: { questions: [{ q, a, options: [s,s,s,s] }, ...] }
+//   Response: { questions: [{ q, a, options: [s,s,s,s] }, ...] }
+//
+// Berenbos: { gameType: "berenbos", niveau, vak, aantal }
+//   niveau ∈ 1 | 2 | 3
+//   vak ∈ "rekenen" | "engels" | "aardrijkskunde" | "geschiedenis" | "taal" | "natuur"
+//   Response: { vragen: [{ vraag, antwoord, opties: [s,s,s,s], uitleg }, ...] }
+//
 // Bij elke fout: HTTP 502 met body { error, fallback: true }; client moet fallback gebruiken.
 
 import Anthropic from "@anthropic-ai/sdk";
 
-const NIVEAUS = ["groep56", "groep78", "middelbaar"];
+const NIVEAUS_EILANDEN = ["groep56", "groep78", "middelbaar"];
 const EILANDEN = ["rekenland", "toppieland", "engeland", "spelling", "historica"];
+
+const NIVEAUS_BERENBOS = [1, 2, 3];
+const VAKKEN_BERENBOS = ["rekenen", "engels", "aardrijkskunde", "geschiedenis", "taal", "natuur"];
 
 const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 const MAX_AANTAL = 10;
 const DEFAULT_AANTAL = 6;
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minuten
-const RATE_WINDOW_MS = 60 * 1000;    // 1 minuut
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const RATE_WINDOW_MS = 60 * 1000;
 
-// Module-level state. In Vercel leeft deze per serverless instance; meerdere instances
-// delen geen state. Voldoende voor een dempende laag, niet voor strikte limieten.
-const responseCache = new Map(); // key -> { expires, payload }
-const rateBuckets = new Map();   // ip -> [timestamps]
+const responseCache = new Map();
+const rateBuckets = new Map();
 
 function rateLimit(ip, limit) {
   const now = Date.now();
@@ -47,7 +56,21 @@ function fail(res, status, error) {
   res.status(status).json({ error, fallback: true });
 }
 
-function buildSystemPrompt(niveau, eiland, aantal) {
+function extractJson(text) {
+  if (typeof text !== "string") return null;
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1 || end < start) return null;
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+}
+
+// ---------- Eilanden ----------
+
+function buildPromptEilanden(niveau, eiland, aantal) {
   return [
     "Je genereert quiz-vragen voor een Nederlands educatief spel voor kinderen.",
     `Niveau: ${niveau}. Eiland (vakgebied): ${eiland}.`,
@@ -67,24 +90,10 @@ function buildSystemPrompt(niveau, eiland, aantal) {
   ].join("\n");
 }
 
-function extractJson(text) {
-  if (typeof text !== "string") return null;
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1 || end < start) return null;
-  const slice = text.slice(start, end + 1);
-  try {
-    return JSON.parse(slice);
-  } catch {
-    return null;
-  }
-}
-
-function validateQuestions(payload, aantal) {
+function validateEilanden(payload, aantal) {
   if (!payload || typeof payload !== "object") return null;
   const arr = payload.questions;
   if (!Array.isArray(arr) || arr.length === 0) return null;
-
   const cleaned = [];
   for (const item of arr) {
     if (!item || typeof item !== "object") return null;
@@ -97,9 +106,56 @@ function validateQuestions(payload, aantal) {
     if (new Set(options).size !== 4) return null;
     cleaned.push({ q: q.trim(), a, options });
   }
-  if (cleaned.length < Math.min(aantal, 1)) return null;
-  return cleaned.slice(0, aantal);
+  if (cleaned.length < 1) return null;
+  return { questions: cleaned.slice(0, aantal) };
 }
+
+// ---------- Berenbos ----------
+
+function buildPromptBerenbos(niveau, vak, aantal) {
+  const moeilijkheid = niveau === 1 ? "makkelijk" : niveau === 2 ? "gemiddeld" : "uitdagend";
+  return [
+    "Je genereert quiz-vragen voor een Nederlands educatief beren-bos-spel voor kinderen van groep 7/8.",
+    `Niveau: ${niveau} (${moeilijkheid}). Vak: ${vak}.`,
+    `Lever exact ${aantal} vragen.`,
+    "",
+    "Regels:",
+    "- Vragen in het Nederlands; uitzondering: bij vak \"engels\" zijn vraag en opties in het Engels (de uitleg blijft Nederlands).",
+    "- Vier opties per vraag; een correct, drie plausibele afleiders.",
+    "- \"antwoord\" moet exact als string in \"opties\" voorkomen.",
+    "- \"uitleg\" is een korte, vriendelijke toelichting in het Nederlands (maximaal twee zinnen) waarom het antwoord goed is.",
+    "- Leeftijdsadequaat voor groep 7/8 op het genoemde niveau.",
+    "- Geen kwetsende, uitsluitende of stereotyperende inhoud.",
+    "- Geen culturele, religieuze of politieke gevoeligheden.",
+    "- Geen tekst buiten het JSON-object.",
+    "",
+    "Output: alleen geldig JSON in dit schema:",
+    "{ \"vragen\": [ { \"vraag\": string, \"antwoord\": string, \"opties\": [string, string, string, string], \"uitleg\": string } ] }",
+  ].join("\n");
+}
+
+function validateBerenbos(payload, aantal) {
+  if (!payload || typeof payload !== "object") return null;
+  const arr = payload.vragen;
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+  const cleaned = [];
+  for (const item of arr) {
+    if (!item || typeof item !== "object") return null;
+    const { vraag, antwoord, opties, uitleg } = item;
+    if (typeof vraag !== "string" || vraag.trim().length === 0) return null;
+    if (typeof antwoord !== "string" || antwoord.trim().length === 0) return null;
+    if (!Array.isArray(opties) || opties.length !== 4) return null;
+    if (!opties.every((o) => typeof o === "string" && o.trim().length > 0)) return null;
+    if (!opties.includes(antwoord)) return null;
+    if (new Set(opties).size !== 4) return null;
+    const uitlegStr = typeof uitleg === "string" ? uitleg.trim() : "";
+    cleaned.push({ vraag: vraag.trim(), antwoord, opties, uitleg: uitlegStr });
+  }
+  if (cleaned.length < 1) return null;
+  return { vragen: cleaned.slice(0, aantal) };
+}
+
+// ---------- Body parsing ----------
 
 async function readJsonBody(req) {
   if (req.body && typeof req.body === "object") return req.body;
@@ -117,6 +173,8 @@ async function readJsonBody(req) {
   });
 }
 
+// ---------- Handler ----------
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -130,16 +188,32 @@ export default async function handler(req, res) {
   const body = await readJsonBody(req);
   if (!body || typeof body !== "object") return fail(res, 400, "invalid_body");
 
-  const niveau = body.niveau;
-  const eiland = body.eiland;
+  const gameType = body.gameType ?? "eilanden";
   let aantal = Number.parseInt(body.aantal ?? DEFAULT_AANTAL, 10);
   if (!Number.isFinite(aantal) || aantal < 1) aantal = DEFAULT_AANTAL;
   if (aantal > MAX_AANTAL) aantal = MAX_AANTAL;
 
-  if (!NIVEAUS.includes(niveau)) return fail(res, 400, "invalid_niveau");
-  if (!EILANDEN.includes(eiland)) return fail(res, 400, "invalid_eiland");
+  let prompt, validate, cacheKey;
 
-  const cacheKey = `${niveau}|${eiland}|${aantal}`;
+  if (gameType === "eilanden") {
+    const { niveau, eiland } = body;
+    if (!NIVEAUS_EILANDEN.includes(niveau)) return fail(res, 400, "invalid_niveau");
+    if (!EILANDEN.includes(eiland)) return fail(res, 400, "invalid_eiland");
+    prompt = buildPromptEilanden(niveau, eiland, aantal);
+    validate = (parsed) => validateEilanden(parsed, aantal);
+    cacheKey = `eilanden|${niveau}|${eiland}|${aantal}`;
+  } else if (gameType === "berenbos") {
+    const niveau = Number.parseInt(body.niveau, 10);
+    const { vak } = body;
+    if (!NIVEAUS_BERENBOS.includes(niveau)) return fail(res, 400, "invalid_niveau");
+    if (!VAKKEN_BERENBOS.includes(vak)) return fail(res, 400, "invalid_vak");
+    prompt = buildPromptBerenbos(niveau, vak, aantal);
+    validate = (parsed) => validateBerenbos(parsed, aantal);
+    cacheKey = `berenbos|${niveau}|${vak}|${aantal}`;
+  } else {
+    return fail(res, 400, "invalid_gameType");
+  }
+
   const now = Date.now();
   const cached = responseCache.get(cacheKey);
   if (cached && cached.expires > now) {
@@ -156,9 +230,9 @@ export default async function handler(req, res) {
   try {
     const completion = await client.messages.create({
       model,
-      max_tokens: 1500,
+      max_tokens: 2000,
       temperature: 0.8,
-      system: buildSystemPrompt(niveau, eiland, aantal),
+      system: prompt,
       messages: [
         { role: "user", content: `Genereer ${aantal} vragen. Antwoord met enkel het JSON-object.` },
       ],
@@ -170,10 +244,9 @@ export default async function handler(req, res) {
   }
 
   const parsed = extractJson(raw);
-  const questions = validateQuestions(parsed, aantal);
-  if (!questions) return fail(res, 502, "schema_mismatch");
+  const validated = validate(parsed);
+  if (!validated) return fail(res, 502, "schema_mismatch");
 
-  const payload = { questions };
-  responseCache.set(cacheKey, { expires: now + CACHE_TTL_MS, payload });
-  return res.status(200).json(payload);
+  responseCache.set(cacheKey, { expires: now + CACHE_TTL_MS, payload: validated });
+  return res.status(200).json(validated);
 }
