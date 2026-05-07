@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import VraagKaart from "./VraagKaart.jsx";
 import { fetchBerenbosVragen } from "./questions.js";
 
@@ -156,6 +156,10 @@ export default function Pad({ niveau, vak, vakInfo, onComplete, onBackToBos }) {
     setVraagIdx((idx) => (idx + 1) % Math.max(1, vragen.length));
   }
 
+  const huidigeVraag = vragen[vraagIdx];
+  const stepEntries = Array.from({ length: niveau.padLengte }, (_, i) => i);
+  const bearPercent = niveau.padLengte > 0 ? (step / niveau.padLengte) * 100 : 0;
+
   if (loading) {
     return (
       <div style={styles.loadBox}>
@@ -164,14 +168,6 @@ export default function Pad({ niveau, vak, vakInfo, onComplete, onBackToBos }) {
       </div>
     );
   }
-
-  const huidigeVraag = vragen[vraagIdx];
-  const stepEntries = useMemo(() => {
-    return Array.from({ length: niveau.padLengte }, (_, i) => i);
-  }, [niveau.padLengte]);
-
-  // Bear positie als percentage van pad (0..100)
-  const bearPercent = niveau.padLengte > 0 ? (step / niveau.padLengte) * 100 : 0;
 
   return (
     <div style={styles.wrap}>
