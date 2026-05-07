@@ -3,26 +3,33 @@ import React from "react";
 // SVG-personages. Pure SVG, geen externe assets, geen dependencies.
 
 export function BearSvg({ size = 64, anim }) {
-  const animation =
-    anim === "hop"     ? "bear-hop 0.7s ease-out" :
-    anim === "stumble" ? "bear-stumble 0.7s ease-out" :
+  const wrapperAnim =
+    anim === "hop"       ? "bear-hop 0.7s ease-out" :
+    anim === "stumble"   ? "bear-stumble 0.7s ease-out" :
+    anim === "celebrate" ? "bear-celebrate 1.2s ease-in-out infinite" :
     "bob 2.4s ease-in-out infinite";
+
+  // Walking cycle staat alleen aan in idle/celebrate; tijdens hop/stumble pauze
+  // zodat de pootjes geen rare botsing maken met de hop-animatie.
+  const walkRunning = anim !== "hop" && anim !== "stumble";
+  const legA = walkRunning ? "leg-walk-a 0.55s ease-in-out infinite" : "none";
+  const legB = walkRunning ? "leg-walk-b 0.55s ease-in-out infinite" : "none";
 
   return (
     <svg
       viewBox="0 0 100 90"
       width={size}
       height={size * 0.9}
-      style={{ display: "block", animation, filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))" }}
+      style={{ display: "block", animation: wrapperAnim, filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))" }}
       aria-label="Beertje"
     >
       <ellipse cx="50" cy="86" rx="30" ry="3" fill="rgba(0, 0, 0, 0.30)" />
-      <ellipse cx="34" cy="76" rx="9" ry="6" fill="#5a3a22" />
-      <ellipse cx="66" cy="76" rx="9" ry="6" fill="#5a3a22" />
+      <ellipse cx="34" cy="76" rx="9" ry="6" fill="#5a3a22" style={{ animation: legA }} />
+      <ellipse cx="66" cy="76" rx="9" ry="6" fill="#5a3a22" style={{ animation: legB }} />
       <ellipse cx="50" cy="58" rx="24" ry="22" fill="#9a7340" />
       <ellipse cx="50" cy="62" rx="14" ry="14" fill="#d4a065" />
-      <ellipse cx="40" cy="74" rx="6" ry="5" fill="#7a5028" />
-      <ellipse cx="60" cy="74" rx="6" ry="5" fill="#7a5028" />
+      <ellipse cx="40" cy="74" rx="6" ry="5" fill="#7a5028" style={{ animation: legB }} />
+      <ellipse cx="60" cy="74" rx="6" ry="5" fill="#7a5028" style={{ animation: legA }} />
       <circle cx="50" cy="30" r="20" fill="#9a7340" />
       <circle cx="34" cy="16" r="7" fill="#9a7340" />
       <circle cx="66" cy="16" r="7" fill="#9a7340" />

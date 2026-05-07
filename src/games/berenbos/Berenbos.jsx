@@ -10,9 +10,13 @@ import {
 import Bos from "./Bos.jsx";
 import Pad from "./Pad.jsx";
 import BossFight from "./BossFight.jsx";
+import { BearSvg } from "./Personages.jsx";
 
-// Welke niveaus zijn in deze MVP echt speelbaar. Fase 2 voegt 2 en 3 toe.
-const SPEELBAAR = new Set([1]);
+// Een niveau is speelbaar als de speler het al ontgrendeld heeft. Niveau 1
+// staat altijd open; hogere niveaus ontgrendelen na het verslaan van een boss.
+function isSpeelbaar(niveauId, progress) {
+  return niveauId <= (progress?.hoogsteNiveau ?? 1);
+}
 
 function loadProgress() {
   try {
@@ -215,6 +219,41 @@ const styles = {
     color: "#3a4a2a", margin: "0 0 14px", fontSize: 15,
   },
   wonRow: { display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" },
+  victoryStage: {
+    position: "relative", height: 130, marginBottom: 10,
+    overflow: "visible",
+  },
+  bigBear: {
+    position: "absolute", left: "50%", bottom: 0,
+    transform: "translateX(-50%)", zIndex: 3,
+  },
+  wolfFlee: {
+    position: "absolute", left: "55%", top: 14,
+    fontSize: 38, animation: "wolf-flee 2.4s ease-out forwards",
+    pointerEvents: "none", zIndex: 4, whiteSpace: "nowrap",
+  },
+  wolfAu: {
+    position: "absolute", left: "60%", top: 4,
+    fontSize: 18, fontWeight: 800, color: "#c84a3a",
+    fontFamily: "Georgia, serif", fontStyle: "italic",
+    background: "rgba(255, 255, 255, 0.95)",
+    padding: "2px 10px", borderRadius: 999,
+    border: "2px solid #c84a3a",
+    animation: "pop-bubble 1.4s ease-out forwards",
+    pointerEvents: "none", zIndex: 5,
+    boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+    whiteSpace: "nowrap",
+  },
+  victoryStar: {
+    position: "absolute", fontSize: 18,
+    animation: "sparkle 1.4s ease-out infinite",
+    pointerEvents: "none", zIndex: 2,
+  },
+  funnyLine: {
+    color: "#5a3a26", fontStyle: "italic",
+    fontFamily: "Georgia, serif",
+    margin: "0 0 12px", fontSize: 15,
+  },
   primary: {
     background: "#5a8a4a", color: "white",
     border: "2px solid #3a6a2a", borderRadius: 14,
@@ -247,6 +286,28 @@ const LEAVES = [
   { left: "30%", delay: 7.5, duration: 11, leaf: "🍂", size: 18 },
   { left: "65%", delay: 4.2, duration: 9.5, leaf: "🍃", size: 22 },
 ];
+
+function WonConfetti() {
+  const pieces = ["🎉", "✨", "🌟", "🎊", "💫", "🏆", "🍂"];
+  return (
+    <div style={{
+      position: "absolute", inset: 0, pointerEvents: "none",
+      overflow: "hidden", borderRadius: "inherit", zIndex: 0,
+    }}>
+      {Array.from({ length: 18 }).map((_, i) => {
+        const left = (i * 5.7) % 100;
+        const delay = (i * 0.12) % 1.8;
+        return (
+          <span key={i} style={{
+            position: "absolute", left: `${left}%`, top: 0,
+            fontSize: 22,
+            animation: `confetti-fall 2.8s ease-in ${delay}s forwards`,
+          }}>{pieces[i % pieces.length]}</span>
+        );
+      })}
+    </div>
+  );
+}
 
 function FallingLeaves() {
   return (
@@ -310,7 +371,7 @@ export default function Berenbos() {
   }
 
   function startNiveau(id) {
-    if (!SPEELBAAR.has(id)) return;
+    if (!isSpeelbaar(id, progress)) return;
     setNiveauId(id);
     setConquered(new Set());
     setActiveVak(null);
@@ -368,7 +429,7 @@ export default function Berenbos() {
             <div style={styles.panelTitle}>Kies je avontuur</div>
             <div style={styles.niveauList}>
               {NIVEAUS.map((n) => {
-                const speelbaar = SPEELBAAR.has(n.id);
+                const speelbaar = isSpeelbaar(n.id, progress);
                 return (
                   <button
                     key={n.id}
@@ -492,29 +553,66 @@ export default function Berenbos() {
   }
 
   if (phase === "won") {
-    const nieuwBadge = niveau.badge;
+    const heeftVolgend = niveau.id < 3;
+    const grappigeRegel =
+      niveau.bossNaam === "Wolf"      ? "Au! De wolf rent jankend het bos uit." :
+      niveau.bossNaam === "Wild Zwijn" ? "Het zwijn snorkt en schuifelt het bos in." :
+      niveau.bossNaam === "Draak"     ? "De draak hoest een rookwolkje en vliegt weg." :
+      `De ${niveau.bossNaam.toLowerCase()} druipt af.`;
     return (
       <div style={styles.page}>
         <ForestBackdrop />
         <div style={styles.content}>
           <div style={styles.wonPanel}>
-            <span style={styles.wonEmoji}>🏆</span>
-            <h2 style={styles.wonTitle}>{niveau.bossNaam} verslagen!</h2>
-            <p style={styles.wonScore}>
-              Niveau "{niveau.naam}" voltooid. Badge verdiend:{" "}
-              <strong>{niveau.bossEmoji} {niveau.bossNaam.toLowerCase()}-verslagen</strong>.
-            </p>
-            <p style={styles.wonScore}>
-              Deze ronde: {sessionGoed} goed, {sessionFout} fout.
-            </p>
-            <div style={styles.wonRow}>
-              <button style={styles.primary} onClick={() => startNiveau(niveau.id)} type="button">
-                Speel opnieuw
-              </button>
-              <button style={styles.secondary} onClick={backToIntro} type="button">
-                Terug naar start
-              </button>
-              <Link to="/" style={styles.secondary}>Land van Leren</Link>
+            <WonConfetti />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={styles.victoryStage}>
+                <span style={{ ...styles.victoryStar, left: "30%", top: 6,  fontSize: 18, animationDelay: "0.0s" }}>⭐</span>
+                <span style={{ ...styles.victoryStar, left: "62%", top: 30, fontSize: 16, animationDelay: "0.5s" }}>✨</span>
+                <span style={{ ...styles.victoryStar, left: "44%", top: 64, fontSize: 18, animationDelay: "1.0s" }}>💫</span>
+                <span style={{ ...styles.victoryStar, left: "26%", top: 50, fontSize: 14, animationDelay: "0.3s" }}>⭐</span>
+                <span style={{ ...styles.victoryStar, left: "70%", top: 60, fontSize: 14, animationDelay: "0.7s" }}>✨</span>
+
+                <span style={styles.wolfAu}>Au!</span>
+                <span style={styles.wolfFlee} aria-hidden="true">{niveau.bossEmoji}💨</span>
+
+                <div style={styles.bigBear}>
+                  <BearSvg size={96} anim="celebrate" />
+                </div>
+              </div>
+
+              <h2 style={styles.wonTitle}>🏆 {niveau.bossNaam} verslagen!</h2>
+              <p style={styles.funnyLine}>{grappigeRegel}</p>
+              <p style={styles.wonScore}>
+                Niveau "{niveau.naam}" voltooid. Badge: <strong>{niveau.bossEmoji} {niveau.bossNaam.toLowerCase()}-verslagen</strong>.
+              </p>
+              <p style={styles.wonScore}>
+                Deze ronde: {sessionGoed} goed, {sessionFout} fout.
+              </p>
+
+              <div style={styles.wonRow}>
+                {heeftVolgend && (
+                  <button style={styles.primary} onClick={() => startNiveau(niveau.id + 1)} type="button">
+                    Volgende niveau →
+                  </button>
+                )}
+                <button
+                  style={heeftVolgend ? styles.secondary : styles.primary}
+                  onClick={() => startNiveau(niveau.id)}
+                  type="button"
+                >
+                  Speel opnieuw
+                </button>
+                <button style={styles.secondary} onClick={backToIntro} type="button">
+                  Terug naar start
+                </button>
+              </div>
+
+              {!heeftVolgend && (
+                <p style={{ ...styles.wonScore, marginTop: 12, fontStyle: "italic" }}>
+                  Je hebt het hele bos uitgespeeld; alle bosbewoners verslagen!
+                </p>
+              )}
             </div>
           </div>
         </div>

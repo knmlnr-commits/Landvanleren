@@ -64,6 +64,45 @@ export const fallbackQuestions = {
       f("In welke provincie liggen de Waddeneilanden voornamelijk?", "Friesland", ["Groningen", "Friesland", "Noord-Holland", "Drenthe"], "De meeste Waddeneilanden liggen in Friesland."),
     ],
   },
+
+  engels: {
+    1: [
+      f("How do you say 'hond' in English?", "dog", ["cat", "dog", "horse", "bird"], "Hond in het Engels is dog."),
+      f("Translate: 'Ik ben blij'.", "I am happy", ["I am sad", "I am tired", "I am happy", "I am angry"], "Blij betekent happy."),
+      f("Wat betekent 'school' in het Nederlands?", "school", ["huis", "school", "winkel", "boom"], "School blijft school in het Nederlands."),
+      f("How do you say 'twee' in English?", "two", ["one", "two", "three", "four"], "Twee in het Engels is two."),
+      f("Wat betekent 'apple'?", "appel", ["banaan", "appel", "peer", "kers"], "Apple is appel."),
+      f("Translate: 'Het regent.'", "It is raining", ["The sun shines", "It is raining", "It is snowing", "The wind blows"], "Regenen is to rain."),
+      f("How do you ask someone's name?", "What is your name?", ["How old are you?", "Where do you live?", "What is your name?", "How are you?"], "Bij naam vragen gebruik je 'What is your name?'."),
+      f("Wat betekent 'difficult'?", "moeilijk", ["makkelijk", "moeilijk", "groot", "klein"], "Difficult is moeilijk."),
+    ],
+  },
+
+  geschiedenis: {
+    1: [
+      f("Wie was de eerste koning van Nederland?", "Willem I", ["Willem I", "Willem II", "Willem-Alexander", "Lodewijk Napoleon"], "Willem I werd in 1815 onze eerste koning."),
+      f("In welk jaar eindigde de Tweede Wereldoorlog?", "1945", ["1918", "1939", "1945", "1950"], "De Tweede Wereldoorlog eindigde in 1945."),
+      f("Wie ontdekte Amerika voor de Europeanen in 1492?", "Columbus", ["Marco Polo", "Columbus", "Magellaan", "Vasco da Gama"], "Christoffel Columbus zette in 1492 voet aan land in Amerika."),
+      f("Wie schilderde 'De Nachtwacht'?", "Rembrandt", ["Rembrandt", "Vermeer", "Van Gogh", "Frans Hals"], "Rembrandt van Rijn schilderde De Nachtwacht in 1642."),
+      f("Welke periode heet 'de Gouden Eeuw'?", "17e eeuw", ["15e eeuw", "16e eeuw", "17e eeuw", "18e eeuw"], "In de 17e eeuw was Nederland zeer welvarend."),
+      f("Wie was Anne Frank?", "Een Joods meisje dat onderdook tijdens WO II", ["Een verzetsstrijder", "Een Joods meisje dat onderdook tijdens WO II", "Een koningin", "Een schrijfster uit de Gouden Eeuw"], "Anne Frank schreef haar dagboek tijdens de onderduik in Amsterdam."),
+      f("Wie was Willem van Oranje?", "Leider van de opstand tegen Spanje", ["De eerste koning", "Leider van de opstand tegen Spanje", "Een schilder", "Een ontdekkingsreiziger"], "Willem van Oranje leidde de Tachtigjarige Oorlog."),
+      f("Wanneer werd de VOC opgericht?", "1602", ["1568", "1602", "1648", "1700"], "De Verenigde Oost-Indische Compagnie werd in 1602 opgericht."),
+    ],
+  },
+
+  natuur: {
+    1: [
+      f("Hoeveel poten heeft een spin?", "8", ["4", "6", "8", "10"], "Een spin heeft 8 poten; daarom is hij een spinachtige, geen insect."),
+      f("Welk dier legt de eieren waaruit kuikens komen?", "Kip", ["Kip", "Koe", "Hond", "Vis"], "Kuikens komen uit kippeneieren."),
+      f("Wat eet een konijn vooral?", "Planten", ["Vlees", "Planten", "Vis", "Eieren"], "Konijnen zijn planteneters."),
+      f("Hoe heet het seizoen waarin bladeren vallen?", "Herfst", ["Lente", "Zomer", "Herfst", "Winter"], "In de herfst vallen veel bladeren van bomen."),
+      f("Hoeveel planeten heeft ons zonnestelsel?", "8", ["6", "7", "8", "9"], "Sinds Pluto geen planeet meer is, telt ons zonnestelsel 8 planeten."),
+      f("Welk dier kan vliegen zonder vleugels?", "Geen", ["Vleermuis", "Mier", "Geen", "Kikker"], "Vliegen zonder vleugels kan niet; vleermuizen hebben wel vleugels."),
+      f("Wat heeft een boom nodig om te groeien?", "Water en zonlicht", ["Alleen water", "Water en zonlicht", "Alleen aarde", "Wind"], "Bomen maken voedsel uit zonlicht en water (fotosynthese)."),
+      f("Hoeveel hartkamers heeft een mens?", "4", ["1", "2", "3", "4"], "Het menselijk hart heeft vier kamers: twee boezems en twee kamers."),
+    ],
+  },
 };
 
 export function getFallback(vak, niveauId, aantal = 8) {
