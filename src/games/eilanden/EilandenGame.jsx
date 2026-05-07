@@ -344,6 +344,19 @@ const s = {
   },
 };
 
+// Frame staat BUITEN de component zodat React hem niet bij elke render opnieuw
+// definieert; anders unmount het input-veld bij elke toetsaanslag en verlies je focus.
+function Frame({ children, hideSun }) {
+  return (
+    <div style={s.page}>
+      {!hideSun && <Sun />}
+      <Waves />
+      <div style={s.content}>{children}</div>
+      <div style={s.footer}>🌿 Willow Games • © 2026</div>
+    </div>
+  );
+}
+
 // ---------- Component ----------
 
 export default function EilandenGame() {
@@ -473,16 +486,6 @@ export default function EilandenGame() {
     setQuestions([]);
     setPhase("niveau");
   }
-
-  // ---------- Render frame ----------
-  const Frame = ({ children, hideSun }) => (
-    <div style={s.page}>
-      {!hideSun && <Sun />}
-      <Waves />
-      <div style={s.content}>{children}</div>
-      <div style={s.footer}>🌿 Willow Games • © 2026</div>
-    </div>
-  );
 
   // ---------- Phases ----------
 
