@@ -544,16 +544,6 @@ export default function Berenbos() {
               : `Voltooi alle paden; dan kun je ${niveau.bossNaam.toLowerCase()} uitdagen.`}
           </p>
 
-          <div style={styles.pathProgress}>
-            <span>Paden:</span>
-            {vakken.map((v) => (
-              <span key={v.slug} style={styles.vakDot(v.color, conquered.has(v.slug))}>
-                {v.icon} {v.naam}
-                {conquered.has(v.slug) ? " ✓" : ""}
-              </span>
-            ))}
-          </div>
-
           {allePadenKlaar ? (
             <button style={styles.bossButton} onClick={() => setPhase("boss")} type="button">
               ⚔️ Daag {niveau.bossNaam} {niveau.bossEmoji} uit
@@ -561,6 +551,7 @@ export default function Berenbos() {
           ) : (
             <Bos
               niveau={niveau}
+              conquered={conquered}
               onPickVak={(slug) => {
                 if (conquered.has(slug)) return;
                 setActiveVak(slug);
