@@ -271,6 +271,43 @@ const styles = {
     fontFamily: "Georgia, serif",
     margin: "0 0 12px", fontSize: 15,
   },
+  padDonePanel: {
+    background: "#fdfaf2",
+    border: "3px solid #5aa850",
+    borderRadius: 22,
+    padding: 22,
+    textAlign: "center",
+    boxShadow: "0 12px 28px rgba(20, 60, 30, 0.30)",
+    position: "relative", overflow: "hidden",
+    animation: "pop-in 0.4s ease-out",
+  },
+  padDoneTitle: {
+    fontSize: 24, fontFamily: "Georgia, serif",
+    color: "#3a6a2a", margin: "0 0 6px",
+    fontStyle: "italic",
+  },
+  padDoneSub: {
+    color: "#3a4a2a", margin: "0 0 14px", fontSize: 15,
+  },
+  padDoneProgress: {
+    display: "flex", flexWrap: "wrap", gap: 8,
+    justifyContent: "center",
+    margin: "12px 0 16px",
+  },
+  padDoneChip: (done, color) => ({
+    display: "inline-flex", alignItems: "center", gap: 6,
+    background: done ? color : "transparent",
+    color: done ? "white" : color,
+    border: `2.5px solid ${color}`,
+    borderRadius: 999,
+    padding: "5px 12px",
+    fontSize: 13, fontWeight: 700,
+    fontFamily: "Georgia, serif",
+  }),
+  padDoneStage: {
+    position: "relative", height: 130, marginBottom: 6,
+    overflow: "hidden",
+  },
   primary: {
     background: "#5a8a4a", color: "white",
     border: "2px solid #3a6a2a", borderRadius: 14,
@@ -404,6 +441,11 @@ export default function Berenbos() {
       next.add(activeVak);
       return next;
     });
+    // activeVak blijft bewaard zodat het padDone-scherm weet welk pad zojuist voltooid is.
+    setPhase("padDone");
+  }
+
+  function continueAfterPad() {
     setActiveVak(null);
     setPhase("bos");
   }
@@ -550,6 +592,66 @@ export default function Berenbos() {
               setPhase("bos");
             }}
           />
+        </div>
+        <div style={styles.footer}>🌿 Willow Games • © 2026</div>
+      </div>
+    );
+  }
+
+  if (phase === "padDone") {
+    const justCompleted = vakken.find((v) => v.slug === activeVak);
+    const allDone = vakken.every((v) => conquered.has(v.slug));
+    return (
+      <div style={styles.page}>
+        <ForestBackdrop />
+        <div style={styles.content}>
+          <div style={styles.padDonePanel}>
+            <div style={styles.padDoneStage}>
+              <span style={{ ...styles.victoryStar, left: "20%", top: 14, fontSize: 18, animation: "sparkle 1.4s ease-out 0.0s infinite" }}>⭐</span>
+              <span style={{ ...styles.victoryStar, left: "78%", top: 28, fontSize: 16, animation: "sparkle 1.4s ease-out 0.5s infinite" }}>✨</span>
+              <span style={{ ...styles.victoryStar, left: "44%", top: 64, fontSize: 18, animation: "sparkle 1.4s ease-out 1.0s infinite" }}>💫</span>
+              <span style={{ ...styles.victoryStar, left: "12%", top: 60, fontSize: 14, animation: "sparkle 1.4s ease-out 0.3s infinite" }}>⭐</span>
+              <div style={styles.bigBearWrap}>
+                <BearSvg size={92} anim="celebrate" />
+              </div>
+            </div>
+            <h2 style={styles.padDoneTitle}>
+              {justCompleted ? `${justCompleted.icon} ${justCompleted.naam} voltooid!` : "Pad voltooid!"}
+            </h2>
+            <p style={styles.padDoneSub}>
+              {allDone
+                ? "Alle paden zijn gelopen; tijd om de wolf te ontmoeten!"
+                : `Knap gedaan! Nog ${vakken.length - conquered.size} pad${vakken.length - conquered.size === 1 ? "" : "en"} te gaan.`}
+            </p>
+            <div style={styles.padDoneProgress}>
+              {vakken.map((v) => (
+                <span key={v.slug} style={styles.padDoneChip(conquered.has(v.slug), v.color)}>
+                  {v.icon} {v.naam} {conquered.has(v.slug) ? "✓" : ""}
+                </span>
+              ))}
+            </div>
+            <div style={styles.wonRow}>
+              {allDone ? (
+                <button
+                  style={styles.primary}
+                  onClick={() => {
+                    setActiveVak(null);
+                    setPhase("boss");
+                  }}
+                  type="button"
+                >
+                  Daag de {niveau.bossNaam.toLowerCase()} uit ⚔️
+                </button>
+              ) : (
+                <button style={styles.primary} onClick={continueAfterPad} type="button">
+                  Volgende pad →
+                </button>
+              )}
+              <button style={styles.secondary} onClick={backToIntro} type="button">
+                Pauze
+              </button>
+            </div>
+          </div>
         </div>
         <div style={styles.footer}>🌿 Willow Games • © 2026</div>
       </div>
