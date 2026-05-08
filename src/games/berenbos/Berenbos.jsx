@@ -11,6 +11,7 @@ import Bos from "./Bos.jsx";
 import Pad from "./Pad.jsx";
 import BossFight from "./BossFight.jsx";
 import { BearSvg } from "./Personages.jsx";
+import Footer from "../../shared/Footer.jsx";
 
 // Een niveau is speelbaar als de speler het al ontgrendeld heeft. Niveau 1
 // staat altijd open; hogere niveaus ontgrendelen na het verslaan van een boss.
@@ -523,7 +524,7 @@ export default function Berenbos() {
             </div>
           </div>
         </div>
-        <div style={styles.footer}>🌿 Willow Games • © 2026</div>
+        <Footer style={styles.footer} />
       </div>
     );
   }
@@ -568,7 +569,7 @@ export default function Berenbos() {
             />
           )}
         </div>
-        <div style={styles.footer}>🌿 Willow Games • © 2026</div>
+        <Footer style={styles.footer} />
       </div>
     );
   }
@@ -593,7 +594,7 @@ export default function Berenbos() {
             }}
           />
         </div>
-        <div style={styles.footer}>🌿 Willow Games • © 2026</div>
+        <Footer style={styles.footer} />
       </div>
     );
   }
@@ -653,7 +654,7 @@ export default function Berenbos() {
             </div>
           </div>
         </div>
-        <div style={styles.footer}>🌿 Willow Games • © 2026</div>
+        <Footer style={styles.footer} />
       </div>
     );
   }
@@ -672,7 +673,7 @@ export default function Berenbos() {
             onFlee={() => setPhase("bos")}
           />
         </div>
-        <div style={styles.footer}>🌿 Willow Games • © 2026</div>
+        <Footer style={styles.footer} />
       </div>
     );
   }
@@ -740,7 +741,7 @@ export default function Berenbos() {
             </div>
           </div>
         </div>
-        <div style={styles.footer}>🌿 Willow Games • © 2026</div>
+        <Footer style={styles.footer} />
       </div>
     );
   }

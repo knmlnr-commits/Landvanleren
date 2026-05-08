@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import WillowBand from "../shared/WillowBand.jsx";
+import Footer from "../shared/Footer.jsx";
 
 const styles = {
   page: {
@@ -192,7 +193,7 @@ export default function VoorLeraren() {
           </div>
         </section>
       </div>
-      <div style={styles.footer}>🌿 Willow Games • © 2026</div>
+      <Footer style={styles.footer} />
     </div>
   );
 }

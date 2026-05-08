@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchQuestions } from "../../lib/questions.js";
+import Footer from "../../shared/Footer.jsx";
 
 const ISLANDS = [
   { slug: "rekenland",  name: "Rekenland",  icon: "🔢", tint: "#3b82f6" },
@@ -352,7 +353,7 @@ function Frame({ children, hideSun }) {
       {!hideSun && <Sun />}
       <Waves />
       <div style={s.content}>{children}</div>
-      <div style={s.footer}>🌿 Willow Games • © 2026</div>
+      <Footer style={s.footer} />
     </div>
   );
 }
