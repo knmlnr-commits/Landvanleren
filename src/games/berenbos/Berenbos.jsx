@@ -24,7 +24,14 @@ function loadProgress() {
     if (!raw) return { ...DEFAULT_PROGRESS };
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return { ...DEFAULT_PROGRESS };
-    return { ...DEFAULT_PROGRESS, ...parsed };
+    return {
+      ...DEFAULT_PROGRESS,
+      ...parsed,
+      badges: Array.isArray(parsed.badges) ? parsed.badges : [],
+      hoogsteNiveau: Number.isFinite(parsed.hoogsteNiveau) ? parsed.hoogsteNiveau : 1,
+      totaalGoed: Number.isFinite(parsed.totaalGoed) ? parsed.totaalGoed : 0,
+      totaalFout: Number.isFinite(parsed.totaalFout) ? parsed.totaalFout : 0,
+    };
   } catch {
     return { ...DEFAULT_PROGRESS };
   }
@@ -402,18 +409,24 @@ export default function Berenbos() {
   }
 
   function handleBossWin() {
-    const nieuw = {
-      ...progress,
-      hoogsteNiveau: Math.max(progress.hoogsteNiveau, niveauId + 1),
-      badges: progress.badges.includes(niveau.badge)
-        ? progress.badges
-        : [...progress.badges, niveau.badge],
-      totaalGoed: progress.totaalGoed + sessionGoed,
-      totaalFout: progress.totaalFout + sessionFout,
-      laatstGespeeld: new Date().toISOString(),
-    };
-    setProgress(nieuw);
-    saveProgress(nieuw);
+    try {
+      const oldBadges = Array.isArray(progress?.badges) ? progress.badges : [];
+      const badge = niveau?.badge ?? `niveau-${niveauId}-verslagen`;
+      const nieuw = {
+        ...DEFAULT_PROGRESS,
+        ...progress,
+        hoogsteNiveau: Math.max(progress?.hoogsteNiveau ?? 1, niveauId + 1),
+        badges: oldBadges.includes(badge) ? oldBadges : [...oldBadges, badge],
+        totaalGoed: (progress?.totaalGoed ?? 0) + sessionGoed,
+        totaalFout: (progress?.totaalFout ?? 0) + sessionFout,
+        laatstGespeeld: new Date().toISOString(),
+      };
+      setProgress(nieuw);
+      saveProgress(nieuw);
+    } catch (err) {
+      // Voortgang opslaan mag het won-scherm nooit blokkeren.
+      console.warn("[Berenbos] Voortgang opslaan mislukt:", err);
+    }
     setPhase("won");
   }
 
